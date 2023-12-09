@@ -1,33 +1,44 @@
 import processing.core.PApplet;
 import processing.core.PImage;
 
+/**
+ * This class represents a simple game where a rocket ship can move towards the mouse, shoot projectiles,
+ * and destroy randomly generated planets.
+ */
 public class Sketch extends PApplet {
 
+  // Rocket Ship variables
   float fltRS_X = 400;
   float fltRS_Y = 400;
   float fltRS_Speed = 5;
 
+  // Image variables
   PImage imgRocketShip;
   PImage[] imgPlanet;
 
+  // Planet variables
   int numPlanets = 6;
   Planet[] planets = new Planet[10000000];
   int numDrawnPlanets = 0;
 
+  // Projectile variables
   Projectile[] projectiles = new Projectile[1000000];
   int numProjectiles = 0;
 
+  // Shooting interval
   int interval = 300;
-  int lastTime = 0; 
+  int lastTime = 0;
 
   public void settings() {
     size(500, 500);
   }
 
   public void setup() {
+    // Load Rocket Ship image
     imgRocketShip = loadImage("RocketShip.png");
     imgRocketShip.resize(50, 50);
 
+    // Load Planet images
     imgPlanet = new PImage[numPlanets];
     for (int i = 0; i < numPlanets; i++) {
       imgPlanet[i] = loadImage("Planet" + i + ".png");
@@ -42,12 +53,19 @@ public class Sketch extends PApplet {
     drawRocketShip();
   }
 
+  /**
+   * Draws all the planets on the screen.
+   */
   public void drawPlanets() {
     for (int i = 0; i < numDrawnPlanets; i++) {
       planets[i].display();
     }
   }
 
+  /**
+   * Draws all the projectiles on the screen, checks for collisions with planets,
+   * and updates the planet health accordingly.
+   */
   public void drawProjectiles() {
     for (int i = 0; i < numProjectiles; i++) {
       if (projectiles[i] != null) {
@@ -69,6 +87,9 @@ public class Sketch extends PApplet {
     }
   }
 
+  /**
+   * Draws the rocket ship at the current mouse position.
+   */
   public void drawRocketShip() {
     float angle = atan2(mouseY - fltRS_Y, mouseX - fltRS_X);
     pushMatrix();
@@ -79,6 +100,9 @@ public class Sketch extends PApplet {
     popMatrix();
   }
 
+  /**
+   * Spawns a new planet at the mouse position when the mouse is pressed.
+   */
   public void mousePressed() {
     if (numDrawnPlanets < planets.length) {
       planets[numDrawnPlanets] = new Planet(mouseX, mouseY);
@@ -86,9 +110,12 @@ public class Sketch extends PApplet {
     }
   }
 
+  /**
+   * Handles the movement of the rocket ship based on user input.
+   */
   public void movementRocketShip() {
     if (keyPressed) {
-      if (key == 'w' || key == 'W') {
+      if (key == 'w' || key == 'W') { // W to move in direction of mouse
         float angle = atan2(mouseY - fltRS_Y, mouseX - fltRS_X);
         float dx = fltRS_Speed * cos(angle);
         float dy = fltRS_Speed * sin(angle);
@@ -100,7 +127,7 @@ public class Sketch extends PApplet {
           float dx = fltRS_Speed * cos(angle);
           float dy = fltRS_Speed * sin(angle);
           projectiles[numProjectiles] = new Projectile(fltRS_X, fltRS_Y, dx, dy);
-          
+
           if (millis() - lastTime > interval) {
             numProjectiles++;
             lastTime = millis();
@@ -110,20 +137,32 @@ public class Sketch extends PApplet {
     }
   }
 
+  /**
+   * Removes a planet from the array, shifting the remaining planets accordingly.
+   *
+   * @param index The index of the planet to be removed.
+   */
   public void removePlanet(int index) {
-    // Shift the remaining planets in the array
     for (int i = index; i < numDrawnPlanets - 1; i++) {
       planets[i] = planets[i + 1];
     }
-    // Decrement the count of drawn planets
     numDrawnPlanets--;
   }
 
+  /**
+   * Inner class representing a planet in the game.
+   */
   public class Planet {
     float x, y;
     PImage img;
     int health = 1;
 
+    /**
+     * Constructor for the Planet class.
+     *
+     * @param x The x-coordinate of the planet.
+     * @param y The y-coordinate of the planet.
+     */
     Planet(float x, float y) {
       this.x = x;
       this.y = y;
@@ -131,30 +170,58 @@ public class Sketch extends PApplet {
       this.img = imgPlanet[randomPlanet];
     }
 
+    /**
+     * Displays the planet on the screen.
+     */
     public void display() {
       imageMode(CENTER);
       image(img, x, y);
     }
 
+    /**
+     * Reduces the health of the planet when hit by a projectile.
+     */
     public void hit() {
-      health--; // Reduce planet health on hit
+      health--;
     }
 
+    /**
+     * Checks if the planet is destroyed (health <= 0).
+     *
+     * @return True if the planet is destroyed, false otherwise.
+     */
     boolean isDestroyed() {
-      return health <= 0; // Check if planet is destroyed
+      return health <= 0;
     }
 
+    /**
+     * Checks for collision with a projectile.
+     *
+     * @param p The projectile to check for collision.
+     * @return True if a collision occurs, false otherwise.
+     */
     boolean checkCollision(Projectile p) {
       float d = dist(x, y, p.x, p.y);
-      return d < img.width / 2 + 2.5; // Increase the radius a bit for better collision detection
+      return d < img.width / 2 + 2.5;
     }
   }
 
+  /**
+   * Inner class representing a projectile in the game.
+   */
   public class Projectile {
     float x, y;
     float speed = 2; // Reduce the speed
     float dx, dy;
 
+    /**
+     * Constructor for the Projectile class.
+     *
+     * @param x  The initial x-coordinate of the projectile.
+     * @param y  The initial y-coordinate of the projectile.
+     * @param dx The x-component of the projectile's velocity.
+     * @param dy The y-component of the projectile's velocity.
+     */
     Projectile(float x, float y, float dx, float dy) {
       this.x = x;
       this.y = y;
@@ -162,13 +229,12 @@ public class Sketch extends PApplet {
       this.dy = dy;
     }
 
+    /**
+     * Updates the position of the projectile based on its velocity.
+     */
     public void update() {
       x += dx * speed;
       y += dy * speed;
     }
-  }
-
-  public static void main(String[] args) {
-    PApplet.main("Sketch");
   }
 }
