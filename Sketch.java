@@ -115,7 +115,7 @@ public class Sketch extends PApplet {
    */
   public void movementRocketShip() {
     if (keyPressed) {
-      if (key == 'w' || key == 'W') { // W to move in direction of mouse
+      if (key == 'w' || key == 'W' || keyCode == UP) { // W or Up Arrow to move in direction of mouse
         float angle = atan2(mouseY - fltRS_Y, mouseX - fltRS_X);
         float dx = fltRS_Speed * cos(angle);
         float dy = fltRS_Speed * sin(angle);
