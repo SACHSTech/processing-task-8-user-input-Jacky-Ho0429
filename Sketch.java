@@ -29,6 +29,11 @@ public class Sketch extends PApplet {
   int interval = 300;
   int lastTime = 0;
 
+  // Star variables
+  Star[] stars = new Star[100]; // Adjust the array size based on your needs
+  int numStars = 0;
+
+
   public void settings() {
     size(500, 500);
   }
@@ -46,11 +51,13 @@ public class Sketch extends PApplet {
   }
 
   public void draw() {
+    // Runs all methods
     background(0);
     movementRocketShip();
     drawPlanets();
     drawProjectiles();
     drawRocketShip();
+    drawStars();
   }
 
   /**
@@ -111,7 +118,7 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Handles the movement of the rocket ship based on user input.
+   * Handles the controls of the rocket ship based on user input.
    */
   public void movementRocketShip() {
     if (keyPressed) {
@@ -235,6 +242,57 @@ public class Sketch extends PApplet {
     public void update() {
       x += dx * speed;
       y += dy * speed;
+    }
+  }
+
+  /**
+   * Runs the methods spawnStar if key 'o' is pressed
+   */
+  public void keyPressed() {
+    if (key == 'o' || key == 'O') {
+      spawnStar();
+    }
+  }
+
+  /**
+   * Sets position of newly made star
+   */
+  public void spawnStar() {
+    if (numStars < stars.length) {
+      float x = random(width);
+      float y = random(height);
+      float size = random(5, 20); // Adjust the size range based on your needs
+      stars[numStars++] = new Star(x, y, size);
+    }
+  }
+
+  /**
+   * Displays each generated star
+   */
+  public void drawStars() {
+    for (int i = 0; i < numStars; i++) {
+      stars[i].display();
+    }
+  }
+
+  /**
+   * The Star class represents a star in the game.
+   * Each star is defined by its x and y coordinates and size.
+   */
+  public class Star {
+    float x, y;
+    float size;
+
+    Star(float x, float y, float size) {
+      this.x = x;
+      this.y = y;
+      this.size = size;
+    }
+
+    public void display() {
+      fill(255); // Set star color to white
+      noStroke();
+      ellipse(x, y, size, size);
     }
   }
 }
