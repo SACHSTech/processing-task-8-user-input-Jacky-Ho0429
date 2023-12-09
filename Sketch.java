@@ -11,10 +11,10 @@ public class Sketch extends PApplet {
   PImage[] imgPlanet;
 
   int numPlanets = 6;
-  Planet[] planets = new Planet[10^1000];
+  Planet[] planets = new Planet[10000000];
   int numDrawnPlanets = 0;
 
-  Projectile[] projectiles = new Projectile[10^1000];
+  Projectile[] projectiles = new Projectile[1000000];
   int numProjectiles = 0;
 
   int interval = 300;
@@ -100,6 +100,7 @@ public class Sketch extends PApplet {
           float dx = fltRS_Speed * cos(angle);
           float dy = fltRS_Speed * sin(angle);
           projectiles[numProjectiles] = new Projectile(fltRS_X, fltRS_Y, dx, dy);
+          
           if (millis() - lastTime > interval) {
             numProjectiles++;
             lastTime = millis();
