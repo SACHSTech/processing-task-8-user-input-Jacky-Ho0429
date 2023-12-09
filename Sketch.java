@@ -2,12 +2,12 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 /**
- * This class represents a simple game where a rocket ship can move towards the mouse, shoot projectiles,
- * and destroy randomly generated planets.
+ * This class draws a rocket ship can move towards the mouse, shoot projectiles,
+ * and destroy randomly generated planets as well as blackholes and stars.
  */
 public class Sketch extends PApplet {
 
-  // Rocket Ship variables
+  // Rocket ship variables
   float fltRS_X = 400;
   float fltRS_Y = 400;
   float fltRS_Speed = 5;
@@ -17,54 +17,65 @@ public class Sketch extends PApplet {
   PImage[] imgPlanet;
 
   // Planet variables
-  int numPlanets = 6;
+  int intNumPlanets = 6;
   Planet[] planets = new Planet[10000000];
-  int numDrawnPlanets = 0;
+  int intNumDrawnPlanets = 0;
 
   // Projectile variables
   Projectile[] projectiles = new Projectile[1000000];
-  int numProjectiles = 0;
+  int intNumProjectiles = 0;
 
-  // Shooting interval
-  int interval = 300;
-  int lastTime = 0;
+  // Shooting interval variables
+  int intInterval = 300;
+  int intLastTime = 0;
 
   // Star variables
   Star[] stars = new Star[100]; // Adjust the array size based on your needs
-  int numStars = 0;
+  int intNumStars = 0;
 
+  // Blackhole variables
+  BlackHole blackHole;
 
   public void settings() {
     size(500, 500);
   }
 
   public void setup() {
-    // Load Rocket Ship image
+    // Load rocket ship image
     imgRocketShip = loadImage("RocketShip.png");
     imgRocketShip.resize(50, 50);
 
-    // Load Planet images
-    imgPlanet = new PImage[numPlanets];
-    for (int i = 0; i < numPlanets; i++) {
+    // Load planet images
+    imgPlanet = new PImage[intNumPlanets];
+    for (int i = 0; i < intNumPlanets; i++) {
       imgPlanet[i] = loadImage("Planet" + i + ".png");
     }
+
+    // Sets black hole to nothing
+    blackHole = null;
   }
 
   public void draw() {
     // Runs all methods
     background(0);
     movementRocketShip();
+    drawStars();
     drawPlanets();
     drawProjectiles();
     drawRocketShip();
-    drawStars();
+
+    // Runs if black hole is not nothing
+    if (blackHole != null) {
+      blackHole.display();
+      blackHole.attractProjectiles();
+    }
   }
 
   /**
    * Draws all the planets on the screen.
    */
   public void drawPlanets() {
-    for (int i = 0; i < numDrawnPlanets; i++) {
+    for (int i = 0; i < intNumDrawnPlanets; i++) {
       planets[i].display();
     }
   }
@@ -74,13 +85,13 @@ public class Sketch extends PApplet {
    * and updates the planet health accordingly.
    */
   public void drawProjectiles() {
-    for (int i = 0; i < numProjectiles; i++) {
+    for (int i = 0; i < intNumProjectiles; i++) {
       if (projectiles[i] != null) {
         projectiles[i].update();
         ellipse(projectiles[i].x, projectiles[i].y, 5, 5);
 
         // Check for collision with planets
-        for (int j = 0; j < numDrawnPlanets; j++) {
+        for (int j = 0; j < intNumDrawnPlanets; j++) {
           if (planets[j].checkCollision(projectiles[i])) {
             projectiles[i] = null; // Remove the projectile
             planets[j].hit(); // Reduce planet health
@@ -111,10 +122,18 @@ public class Sketch extends PApplet {
    * Spawns a new planet at the mouse position when the mouse is pressed.
    */
   public void mousePressed() {
-    if (numDrawnPlanets < planets.length) {
-      planets[numDrawnPlanets] = new Planet(mouseX, mouseY);
-      numDrawnPlanets++;
+    if (intNumDrawnPlanets < planets.length) {
+      planets[intNumDrawnPlanets] = new Planet(mouseX, mouseY);
+      intNumDrawnPlanets++;
     }
+  }
+
+  public void mouseClicked() {
+    spawnBlackHole();
+  }
+
+  public void spawnBlackHole() {
+    blackHole = new BlackHole(mouseX, mouseY);
   }
 
   /**
@@ -129,15 +148,15 @@ public class Sketch extends PApplet {
         fltRS_X += dx;
         fltRS_Y += dy;
       } else if (key == ' ' || key == ' ') { // Spacebar to shoot
-        if (numProjectiles < projectiles.length) {
+        if (intNumProjectiles < projectiles.length) {
           float angle = atan2(mouseY - fltRS_Y, mouseX - fltRS_X);
           float dx = fltRS_Speed * cos(angle);
           float dy = fltRS_Speed * sin(angle);
-          projectiles[numProjectiles] = new Projectile(fltRS_X, fltRS_Y, dx, dy);
+          projectiles[intNumProjectiles] = new Projectile(fltRS_X, fltRS_Y, dx, dy);
 
-          if (millis() - lastTime > interval) {
-            numProjectiles++;
-            lastTime = millis();
+          if (millis() - intLastTime > intInterval) {
+            intNumProjectiles++;
+            intLastTime = millis();
           }
         }
       }
@@ -150,10 +169,10 @@ public class Sketch extends PApplet {
    * @param index The index of the planet to be removed.
    */
   public void removePlanet(int index) {
-    for (int i = index; i < numDrawnPlanets - 1; i++) {
+    for (int i = index; i < intNumDrawnPlanets - 1; i++) {
       planets[i] = planets[i + 1];
     }
-    numDrawnPlanets--;
+    intNumDrawnPlanets--;
   }
 
   /**
@@ -173,7 +192,7 @@ public class Sketch extends PApplet {
     Planet(float x, float y) {
       this.x = x;
       this.y = y;
-      int randomPlanet = floor(random(numPlanets));
+      int randomPlanet = floor(random(intNumPlanets));
       this.img = imgPlanet[randomPlanet];
     }
 
@@ -258,11 +277,11 @@ public class Sketch extends PApplet {
    * Sets position of newly made star
    */
   public void spawnStar() {
-    if (numStars < stars.length) {
+    if (intNumStars < stars.length) {
       float x = random(width);
       float y = random(height);
-      float size = random(5, 20); // Adjust the size range based on your needs
-      stars[numStars++] = new Star(x, y, size);
+      float size = random(1, 15); // Adjust the size range based on your needs
+      stars[intNumStars++] = new Star(x, y, size);
     }
   }
 
@@ -270,7 +289,7 @@ public class Sketch extends PApplet {
    * Displays each generated star
    */
   public void drawStars() {
-    for (int i = 0; i < numStars; i++) {
+    for (int i = 0; i < intNumStars; i++) {
       stars[i].display();
     }
   }
@@ -293,6 +312,45 @@ public class Sketch extends PApplet {
       fill(255); // Set star color to white
       noStroke();
       ellipse(x, y, size, size);
+    }
+  }
+
+  public class BlackHole {
+    float x, y;
+    PImage imgBlackHole;
+    float attractionRadius = 100;
+
+    BlackHole(float x, float y) {
+      this.x = x;
+      this.y = y;
+      imgBlackHole = loadImage("BlackHole.png");
+      imgBlackHole.resize(50, 50);
+    }
+
+    public void display() {
+      imageMode(CENTER);
+      image(imgBlackHole, x, y);
+    }
+
+    public void attractProjectiles() {
+      for (int i = 0; i < intNumProjectiles; i++) {
+        if (projectiles[i] != null) {
+          float forceX = x - projectiles[i].x;
+          float forceY = y - projectiles[i].y;
+          float distance = dist(x, y, projectiles[i].x, projectiles[i].y);
+
+          if (distance < attractionRadius) {
+            float forceMagnitude = 5 / distance;
+            projectiles[i].x += forceX * forceMagnitude;
+            projectiles[i].y += forceY * forceMagnitude;
+
+            // Check if the projectile is at the center of the black hole
+            if (distance < 20) {
+              projectiles[i] = null; // Delete the projectile
+            }
+          }
+        }
+      }
     }
   }
 }
