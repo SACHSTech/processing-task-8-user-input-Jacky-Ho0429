@@ -1,356 +1,201 @@
 import processing.core.PApplet;
-import processing.core.PImage;
 
 /**
- * This class draws a rocket ship can move towards the mouse, shoot projectiles,
- * and destroy randomly generated planets as well as blackholes and stars.
+ * Sketch is a nature-themed interactive setting using key and mouse inputs.
  */
 public class Sketch extends PApplet {
 
-  // Rocket ship variables
-  float fltRS_X = 400;
-  float fltRS_Y = 400;
-  float fltRS_Speed = 5;
+    // Time interval for drawing grass
+    int intInterval = 100;
+    // Last time the grass was drawn
+    int intLastTime = 0;
 
-  // Image variables
-  PImage imgRocketShip;
-  PImage[] imgPlanet;
+    // Initial sky color
+    int skyColor = color(0, 0, 255);
 
-  // Planet variables
-  int intNumPlanets = 6;
-  Planet[] planets = new Planet[10000000];
-  int intNumDrawnPlanets = 0;
-
-  // Projectile variables
-  Projectile[] projectiles = new Projectile[1000000];
-  int intNumProjectiles = 0;
-
-  // Shooting interval variables
-  int intInterval = 300;
-  int intLastTime = 0;
-
-  // Star variables
-  Star[] stars = new Star[100]; // Adjust the array size based on your needs
-  int intNumStars = 0;
-
-  // Blackhole variables
-  BlackHole blackHole;
-
-  public void settings() {
-    size(500, 500);
-  }
-
-  public void setup() {
-    // Load rocket ship image
-    imgRocketShip = loadImage("RocketShip.png");
-    imgRocketShip.resize(50, 50);
-
-    // Load planet images
-    imgPlanet = new PImage[intNumPlanets];
-    for (int i = 0; i < intNumPlanets; i++) {
-      imgPlanet[i] = loadImage("Planet" + i + ".png");
+    /**
+     * Sets up the canvas size.
+     */
+    public void settings() {
+        size(500, 500);
     }
 
-    // Sets black hole to nothing
-    blackHole = null;
-  }
-
-  public void draw() {
-    // Runs all methods
-    background(0);
-    movementRocketShip();
-    drawStars();
-    drawPlanets();
-    drawProjectiles();
-    drawRocketShip();
-
-    // Runs if black hole is not nothing
-    if (blackHole != null) {
-      blackHole.display();
-      blackHole.attractProjectiles();
+    /**
+     * Sets up the initial sky color and background.
+     */
+    public void setup() {
+        updateBackground();
     }
-  }
 
-  /**
-   * Draws all the planets on the screen.
-   */
-  public void drawPlanets() {
-    for (int i = 0; i < intNumDrawnPlanets; i++) {
-      planets[i].display();
+    public void draw() {
+        float cloudWidth = random(50, 100);
+        float cloudHeight = random(25, 50);
+
+        // Draws Clouds
+        if (mouseY < height / 2 - height / 15 && mousePressed) {
+            noStroke();
+            fill(255, 255, 255);
+            ellipse(mouseX, mouseY, cloudWidth, cloudHeight);
+        }
     }
-  }
 
-  /**
-   * Draws all the projectiles on the screen, checks for collisions with planets,
-   * and updates the planet health accordingly.
-   */
-  public void drawProjectiles() {
-    for (int i = 0; i < intNumProjectiles; i++) {
-      if (projectiles[i] != null) {
-        projectiles[i].update();
-        ellipse(projectiles[i].x, projectiles[i].y, 5, 5);
+    public void mouseWheel() {
+        float wingColorRed = random(255);
+        float wingColorGreen = random(255);
+        float wingColorBlue = random(255);
 
-        // Check for collision with planets
-        for (int j = 0; j < intNumDrawnPlanets; j++) {
-          if (planets[j].checkCollision(projectiles[i])) {
-            projectiles[i] = null; // Remove the projectile
-            planets[j].hit(); // Reduce planet health
-            if (planets[j].isDestroyed()) {
-              removePlanet(j); // Remove the planet if health is zero
+        if (mouseY < height / 2 - height / 10) {
+            // Draw butterfly antennae
+            strokeWeight(1);
+            stroke(0);
+            line(mouseX, mouseY, mouseX - 5, mouseY - 5);
+            line(mouseX - 1, mouseY, mouseX + 5, mouseY - 5);
+
+            // Draw butterfly body
+            noStroke();
+            fill(255, 229, 180);
+            ellipse(mouseX, mouseY + 5 / 2, 5, 5);
+            rect(mouseX - 5 / 2, mouseY + 5 / 2, 5, 15);
+            ellipse(mouseX, mouseY + 35 / 2, 5, 5);
+
+            // Draw butterfly wings
+            stroke(0);
+            fill(wingColorRed, wingColorGreen, wingColorBlue);
+
+            // Upper wings
+            pushMatrix();
+            translate(mouseX + 11, mouseY + 15 / 2);
+            rotate(radians(-45));
+            ellipse(0, 0, 20, 25 / 2);
+            popMatrix();
+
+            pushMatrix();
+            translate(mouseX - 10, mouseY + 15 / 2);
+            rotate(radians(45));
+            ellipse(0, 0, 20, 25 / 2);
+            popMatrix();
+
+            // Lower wings
+            pushMatrix();
+            translate(mouseX + 11, mouseY + 25 / 2);
+            rotate(radians(-90));
+            ellipse(0, 0, 15, 25 / 2);
+            popMatrix();
+
+            pushMatrix();
+                translate(mouseX - 10, mouseY + 25 / 2);
+                rotate(radians(90));
+                ellipse(0, 0, 15, 25 / 2);
+            popMatrix();
+
+            // Duplicated to remove inner stroke
+            noStroke();
+            pushMatrix();
+            translate(mouseX + 11, mouseY + 15 / 2);
+            rotate(radians(-45));
+            ellipse(0, 0, 20, 25 / 2);
+            popMatrix();
+
+            pushMatrix();
+                translate(mouseX - 10, mouseY + 15 / 2);
+                rotate(radians(45));
+                ellipse(0, 0, 20, 25 / 2);
+            popMatrix();
+        }
+    }
+
+    /**
+     * Called when the mouse is dragged. Draws grass at the current mouse position.
+     */
+    public void mouseDragged() {
+        if (mouseY > height / 2) {
+            // Check if the time interval has passed since the last grass drawing
+            if (millis() - intLastTime > intInterval) {
+                // Draws Grass
+                noStroke();
+                for (int i = 0; i < width; i += 5) {
+                    float grassHeight = random(5, 15);
+                    fill(0, 128, 0);
+                    triangle(mouseX - 1, mouseY, mouseX + 2, mouseY - grassHeight, mouseX + 5, mouseY);
+                }
+
+                // Update the last drawing time
+                intLastTime = millis();
             }
-            break;
-          }
         }
-      }
-    }
-  }
-
-  /**
-   * Draws the rocket ship at the current mouse position.
-   */
-  public void drawRocketShip() {
-    float angle = atan2(mouseY - fltRS_Y, mouseX - fltRS_X);
-    pushMatrix();
-    translate(fltRS_X, fltRS_Y);
-    rotate(angle - 10);
-    imageMode(CENTER);
-    image(imgRocketShip, 0, 0);
-    popMatrix();
-  }
-
-  /**
-   * Spawns a new planet at the mouse position when the mouse is pressed.
-   */
-  public void mousePressed() {
-    if (intNumDrawnPlanets < planets.length) {
-      planets[intNumDrawnPlanets] = new Planet(mouseX, mouseY);
-      intNumDrawnPlanets++;
-    }
-  }
-
-  public void mouseClicked() {
-    spawnBlackHole();
-  }
-
-  public void spawnBlackHole() {
-    blackHole = new BlackHole(mouseX, mouseY);
-  }
-
-  /**
-   * Handles the controls of the rocket ship based on user input.
-   */
-  public void movementRocketShip() {
-    if (keyPressed) {
-      if (key == 'w' || key == 'W' || keyCode == UP) { // W or Up Arrow to move in direction of mouse
-        float angle = atan2(mouseY - fltRS_Y, mouseX - fltRS_X);
-        float dx = fltRS_Speed * cos(angle);
-        float dy = fltRS_Speed * sin(angle);
-        fltRS_X += dx;
-        fltRS_Y += dy;
-      } else if (key == ' ' || key == ' ') { // Spacebar to shoot
-        if (intNumProjectiles < projectiles.length) {
-          float angle = atan2(mouseY - fltRS_Y, mouseX - fltRS_X);
-          float dx = fltRS_Speed * cos(angle);
-          float dy = fltRS_Speed * sin(angle);
-          projectiles[intNumProjectiles] = new Projectile(fltRS_X, fltRS_Y, dx, dy);
-
-          if (millis() - intLastTime > intInterval) {
-            intNumProjectiles++;
-            intLastTime = millis();
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Removes a planet from the array, shifting the remaining planets accordingly.
-   *
-   * @param index The index of the planet to be removed.
-   */
-  public void removePlanet(int index) {
-    for (int i = index; i < intNumDrawnPlanets - 1; i++) {
-      planets[i] = planets[i + 1];
-    }
-    intNumDrawnPlanets--;
-  }
-
-  /**
-   * Inner class representing a planet in the game.
-   */
-  public class Planet {
-    float x, y;
-    PImage img;
-    int health = 1;
-
-    /**
-     * Constructor for the Planet class.
-     *
-     * @param x The x-coordinate of the planet.
-     * @param y The y-coordinate of the planet.
-     */
-    Planet(float x, float y) {
-      this.x = x;
-      this.y = y;
-      int randomPlanet = floor(random(intNumPlanets));
-      this.img = imgPlanet[randomPlanet];
     }
 
     /**
-     * Displays the planet on the screen.
+     * Called when the mouse is clicked. Draws a flower at the mouse position.
      */
-    public void display() {
-      imageMode(CENTER);
-      image(img, x, y);
-    }
+    public void mouseClicked() {
+        if (mouseY > height / 2 - height / 10) {
+            // Flower Stem
+            stroke(0, 128, 0);
+            strokeWeight(4);
+            line(mouseX, mouseY, mouseX, mouseY + width / 10);
 
-    /**
-     * Reduces the health of the planet when hit by a projectile.
-     */
-    public void hit() {
-      health--;
-    }
+            // Flower Petals
+            int numPetals = 6;
+            float petalColorRed = random(255);
+            float petalColorGreen = random(255);
+            float petalColorBlue = random(255);
+            float petalSize = random(width / 50, width / 20);
+            float angleIncrement = TWO_PI / numPetals;
 
-    /**
-     * Checks if the planet is destroyed (health <= 0).
-     *
-     * @return True if the planet is destroyed, false otherwise.
-     */
-    boolean isDestroyed() {
-      return health <= 0;
-    }
+            noStroke();
+            fill(petalColorRed, petalColorGreen, petalColorBlue);
 
-    /**
-     * Checks for collision with a projectile.
-     *
-     * @param p The projectile to check for collision.
-     * @return True if a collision occurs, false otherwise.
-     */
-    boolean checkCollision(Projectile p) {
-      float d = dist(x, y, p.x, p.y);
-      return d < img.width / 2 + 2.5;
-    }
-  }
-
-  /**
-   * Inner class representing a projectile in the game.
-   */
-  public class Projectile {
-    float x, y;
-    float speed = 2; // Reduce the speed
-    float dx, dy;
-
-    /**
-     * Constructor for the Projectile class.
-     *
-     * @param x  The initial x-coordinate of the projectile.
-     * @param y  The initial y-coordinate of the projectile.
-     * @param dx The x-component of the projectile's velocity.
-     * @param dy The y-component of the projectile's velocity.
-     */
-    Projectile(float x, float y, float dx, float dy) {
-      this.x = x;
-      this.y = y;
-      this.dx = dx;
-      this.dy = dy;
-    }
-
-    /**
-     * Updates the position of the projectile based on its velocity.
-     */
-    public void update() {
-      x += dx * speed;
-      y += dy * speed;
-    }
-  }
-
-  /**
-   * Runs the methods spawnStar if key 'o' is pressed
-   */
-  public void keyPressed() {
-    if (key == 'o' || key == 'O') {
-      spawnStar();
-    }
-  }
-
-  /**
-   * Sets position of newly made star
-   */
-  public void spawnStar() {
-    if (intNumStars < stars.length) {
-      float x = random(width);
-      float y = random(height);
-      float size = random(1, 15); // Adjust the size range based on your needs
-      stars[intNumStars++] = new Star(x, y, size);
-    }
-  }
-
-  /**
-   * Displays each generated star
-   */
-  public void drawStars() {
-    for (int i = 0; i < intNumStars; i++) {
-      stars[i].display();
-    }
-  }
-
-  /**
-   * The Star class represents a star in the game.
-   * Each star is defined by its x and y coordinates and size.
-   */
-  public class Star {
-    float x, y;
-    float size;
-
-    Star(float x, float y, float size) {
-      this.x = x;
-      this.y = y;
-      this.size = size;
-    }
-
-    public void display() {
-      fill(255); // Set star color to white
-      noStroke();
-      ellipse(x, y, size, size);
-    }
-  }
-
-  public class BlackHole {
-    float x, y;
-    PImage imgBlackHole;
-    float attractionRadius = 100;
-
-    BlackHole(float x, float y) {
-      this.x = x;
-      this.y = y;
-      imgBlackHole = loadImage("BlackHole.png");
-      imgBlackHole.resize(50, 50);
-    }
-
-    public void display() {
-      imageMode(CENTER);
-      image(imgBlackHole, x, y);
-    }
-
-    public void attractProjectiles() {
-      for (int i = 0; i < intNumProjectiles; i++) {
-        if (projectiles[i] != null) {
-          float forceX = x - projectiles[i].x;
-          float forceY = y - projectiles[i].y;
-          float distance = dist(x, y, projectiles[i].x, projectiles[i].y);
-
-          if (distance < attractionRadius) {
-            float forceMagnitude = 5 / distance;
-            projectiles[i].x += forceX * forceMagnitude;
-            projectiles[i].y += forceY * forceMagnitude;
-
-            // Check if the projectile is at the center of the black hole
-            if (distance < 20) {
-              projectiles[i] = null; // Delete the projectile
+            // Draw multiple petals around the center of the flower
+            for (float angle = 0; angle < TWO_PI; angle += angleIncrement) {
+                float petalX = mouseX + cos(angle) * 15;
+                float petalY = mouseY + sin(angle) * 15;
+                ellipse(petalX, petalY, petalSize, petalSize);
             }
-          }
+
+            // Center of Flower
+            fill(255, 255, 0);
+            noStroke();
+            ellipse(mouseX, mouseY, petalSize, petalSize);
         }
-      }
     }
-  }
+
+    /**
+     * Called when a key is pressed. Adjusts the sky color based on the arrow keys.
+     */
+    public void keyPressed() {
+        if (keyCode == LEFT) {
+            // Pressing left arrow key brightens the sky
+            adjustSky(1);
+        } else if (keyCode == RIGHT) {
+            // Pressing right arrow key darkens the sky
+            adjustSky(-1);
+        }
+    }
+
+    /**
+     * Adjusts the sky color based on the given adjustment.
+     *
+     * @param adjustment The amount to adjust the blue component of the sky color.
+     */
+    private void adjustSky(int adjustment) {
+        float blueValue = blue(skyColor);
+        skyColor = color(red(skyColor), green(skyColor), blueValue);
+        blueValue = constrain(blueValue + adjustment, 0, 255);
+        skyColor = color(red(skyColor), green(skyColor), blueValue);
+
+        updateBackground();
+    }
+
+    /**
+     * Updates the background with the current sky color and draws the ground.
+     */
+    private void updateBackground() {
+        background(skyColor);
+
+        // Ground
+        noStroke();
+        fill(0, 100, 0);
+        rect(0, height / 2, width, height);
+    }
 }
