@@ -1,4 +1,5 @@
 import processing.core.PApplet;
+import java.util.ArrayList;
 
 public class Sketch extends PApplet {
 
@@ -6,6 +7,12 @@ public class Sketch extends PApplet {
     float speed = 5;
 
     boolean wKey, sKey, aKey, dKey;
+
+    // ArrayLists to keep track of elements
+    ArrayList<float[]> clouds;
+    ArrayList<float[]> flowers;
+    ArrayList<float[]> butterflies;
+    ArrayList<float[]> grass;
 
     // Time interval for drawing grass
     int intInterval = 100;
@@ -27,23 +34,57 @@ public class Sketch extends PApplet {
      */
     public void setup() {
         stickmanX = width / 2;
-        stickmanY = height / 2 - 60;
-        updateBackground();
+        stickmanY = height / 2 + 60;
+
+        // Initialize ArrayLists
+        clouds = new ArrayList<>();
+        flowers = new ArrayList<>();
+        butterflies = new ArrayList<>();
+        grass = new ArrayList<>();
     }
 
     public void draw() {
-        float cloudWidth = random(50, 100);
-        float cloudHeight = random(25, 50);
-
+        updateBackground();
         // Draws Clouds
         if (mouseY < height / 2 - height / 15 && mousePressed) {
+            float[] cloud = { mouseX, mouseY };
+            clouds.add(cloud);
+
             noStroke();
             fill(255, 255, 255);
-            ellipse(mouseX, mouseY, cloudWidth, cloudHeight);
+            ellipse(mouseX, mouseY, 80, 40);
         }
 
+        // Redraws Clouds
+        for (float[] cloud : clouds) {
+            noStroke();
+            fill(255, 255, 255);
+            ellipse(cloud[0], cloud[1], 80, 40);
+        }
+
+        // Draw Stickman
         drawStickman(stickmanX, stickmanY);
+
+        // Handle Stickman Movement
         handleMovement();
+
+        // Draw Grass
+        for (float[] grassBlade : grass) {
+            noStroke();
+            fill(0, 128, 0);
+            triangle(grassBlade[0], grassBlade[1], grassBlade[0] + 2, grassBlade[1] - grassBlade[2], grassBlade[0] + 5, grassBlade[1]);
+        }
+
+        // Draw Flowers
+        for (float[] flower : flowers) {
+            drawFlower(flower[0], flower[1]);
+        }
+
+
+        // Draw Butterfly
+        for (float[] butterfly : butterflies) {
+            drawButterfly(butterfly[0], butterfly[1]);
+        }
     }
 
     public void drawStickman(int x, int y) {
@@ -88,69 +129,88 @@ public class Sketch extends PApplet {
         }
     }
 
-    public void mouseWheel() {
-        float wingColorRed = random(255);
-        float wingColorGreen = random(255);
-        float wingColorBlue = random(255);
+    public void drawFlower(float x, float y) {
+        // Flower Stem
+        stroke(0, 128, 0);
+        strokeWeight(4);
+        line(x, y, x, y + width / 10);
 
-        if (mouseY < height / 2 - height / 10) {
-            // Draw butterfly antennae
-            strokeWeight(1);
-            stroke(0);
-            line(mouseX, mouseY, mouseX - 5, mouseY - 5);
-            line(mouseX - 1, mouseY, mouseX + 5, mouseY - 5);
+        // Flower Petals
+        int numPetals = 6;
+        float petalSize = 15;  // Fixed petal size
 
-            // Draw butterfly body
-            noStroke();
-            fill(255, 229, 180);
-            ellipse(mouseX, mouseY + 5 / 2, 5, 5);
-            rect(mouseX - 5 / 2, mouseY + 5 / 2, 5, 15);
-            ellipse(mouseX, mouseY + 35 / 2, 5, 5);
+        noStroke();
+        fill(255, 100, 100);
 
-            // Draw butterfly wings
-            stroke(0);
-            fill(wingColorRed, wingColorGreen, wingColorBlue);
-
-            // Upper wings
-            pushMatrix();
-            translate(mouseX + 11, mouseY + 15 / 2);
-            rotate(radians(-45));
-            ellipse(0, 0, 20, 25 / 2);
-            popMatrix();
-
-            pushMatrix();
-            translate(mouseX - 10, mouseY + 15 / 2);
-            rotate(radians(45));
-            ellipse(0, 0, 20, 25 / 2);
-            popMatrix();
-
-            // Lower wings
-            pushMatrix();
-            translate(mouseX + 11, mouseY + 25 / 2);
-            rotate(radians(-90));
-            ellipse(0, 0, 15, 25 / 2);
-            popMatrix();
-
-            pushMatrix();
-            translate(mouseX - 10, mouseY + 25 / 2);
-            rotate(radians(90));
-            ellipse(0, 0, 15, 25 / 2);
-            popMatrix();
-
-            // Duplicated to remove inner stroke
-            noStroke();
-            pushMatrix();
-            translate(mouseX + 11, mouseY + 15 / 2);
-            rotate(radians(-45));
-            ellipse(0, 0, 20, 25 / 2);
-            popMatrix();
-
-            pushMatrix();
-            translate(mouseX - 10, mouseY + 15 / 2);
-            rotate(radians(45));
-            ellipse(0, 0, 20, 25 / 2);
-            popMatrix();
+        // Draw multiple petals around the center of the flower
+        for (float angle = 0; angle < TWO_PI; angle += TWO_PI / numPetals) {
+            float petalX = x + cos(angle) * 15;
+            float petalY = y + sin(angle) * 15;
+            ellipse(petalX, petalY, petalSize, petalSize);
         }
+
+        // Center of Flower
+        fill(255, 255, 0);
+        noStroke();
+        ellipse(x, y, petalSize, petalSize);
+    }
+
+    public void drawButterfly(float x, float y) {
+        // Draw butterfly antennae
+        strokeWeight(1);
+        stroke(0);
+        line(x, y, x - 5, y - 5);
+        line(x - 1, y, x + 5, y - 5);
+
+        // Draw butterfly body
+        noStroke();
+        fill(255, 229, 180);
+        ellipse(x, y + 5 / 2, 5, 5);
+        rect(x - 5 / 2, y + 5 / 2, 5, 15);
+        ellipse(x, y + 35 / 2, 5, 5);
+
+        // Draw butterfly wings
+        fill(100, 200, 100);
+
+        // Upper wings
+        pushMatrix();
+        translate(x + 11, y + 15 / 2);
+        rotate(radians(-45));
+        ellipse(0, 0, 20, 25 / 2);
+        popMatrix();
+
+        pushMatrix();
+        translate(x - 10, y + 15 / 2);
+        rotate(radians(45));
+        ellipse(0, 0, 20, 25 / 2);
+        popMatrix();
+
+        // Lower wings
+        pushMatrix();
+        translate(x + 11, y + 25 / 2);
+        rotate(radians(-90));
+        ellipse(0, 0, 15, 25 / 2);
+        popMatrix();
+
+        pushMatrix();
+        translate(x - 10, y + 25 / 2);
+        rotate(radians(90));
+        ellipse(0, 0, 15, 25 / 2);
+        popMatrix();
+
+        // Duplicated to remove inner stroke
+        noStroke();
+        pushMatrix();
+        translate(x + 11, y + 15 / 2);
+        rotate(radians(-45));
+        ellipse(0, 0, 20, 25 / 2);
+        popMatrix();
+
+        pushMatrix();
+        translate(x - 10, y + 15 / 2);
+        rotate(radians(45));
+        ellipse(0, 0, 20, 25 / 2);
+        popMatrix();
     }
 
     /**
@@ -161,12 +221,8 @@ public class Sketch extends PApplet {
             // Check if the time interval has passed since the last grass drawing
             if (millis() - intLastTime > intInterval) {
                 // Draws Grass
-                noStroke();
-                for (int i = 0; i < width; i += 5) {
-                    float grassHeight = random(5, 15);
-                    fill(0, 128, 0);
-                    triangle(mouseX - 1, mouseY, mouseX + 2, mouseY - grassHeight, mouseX + 5, mouseY);
-                }
+                float[] grassBlade = { mouseX - 1, mouseY, random(5, 15) };
+                grass.add(grassBlade);
 
                 // Update the last drawing time
                 intLastTime = millis();
@@ -175,37 +231,20 @@ public class Sketch extends PApplet {
     }
 
     /**
+     * Called when the mouse wheel is scrolled. Draws a butterfly at the mouse position.
+     */
+    public void mouseWheel() {
+        float[] butterfly = { mouseX, mouseY };
+        butterflies.add(butterfly);
+    }
+
+    /**
      * Called when the mouse is clicked. Draws a flower at the mouse position.
      */
     public void mouseClicked() {
         if (mouseY > height / 2 - height / 10) {
-            // Flower Stem
-            stroke(0, 128, 0);
-            strokeWeight(4);
-            line(mouseX, mouseY, mouseX, mouseY + width / 10);
-
-            // Flower Petals
-            int numPetals = 6;
-            float petalColorRed = random(255);
-            float petalColorGreen = random(255);
-            float petalColorBlue = random(255);
-            float petalSize = random(width / 50, width / 20);
-            float angleIncrement = TWO_PI / numPetals;
-
-            noStroke();
-            fill(petalColorRed, petalColorGreen, petalColorBlue);
-
-            // Draw multiple petals around the center of the flower
-            for (float angle = 0; angle < TWO_PI; angle += angleIncrement) {
-                float petalX = mouseX + cos(angle) * 15;
-                float petalY = mouseY + sin(angle) * 15;
-                ellipse(petalX, petalY, petalSize, petalSize);
-            }
-
-            // Center of Flower
-            fill(255, 255, 0);
-            noStroke();
-            ellipse(mouseX, mouseY, petalSize, petalSize);
+            float[] flower = { mouseX, mouseY };
+            flowers.add(flower);
         }
     }
 
@@ -230,11 +269,10 @@ public class Sketch extends PApplet {
         } else if (key == 'd' || key == 'D') {
             dKey = true;
         }
-
     }
 
     public void keyReleased() {
-        if (key == 'w' || key == 'W') { 
+        if (key == 'w' || key == 'W') {
             wKey = false;
         } else if (key == 's' || key == 'S') {
             sKey = false;
@@ -269,9 +307,5 @@ public class Sketch extends PApplet {
         noStroke();
         fill(0, 100, 0);
         rect(0, height / 2, width, height);
-    }
-
-    public static void main(String[] args) {
-        PApplet.main("Sketch");
     }
 }
