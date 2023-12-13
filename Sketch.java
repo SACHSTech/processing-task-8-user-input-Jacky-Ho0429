@@ -52,7 +52,7 @@ public class Sketch extends PApplet {
         if (keyPressed) {
             // Change stickman speed
             if (key == 'm' || key == 'M') {
-                speed = random(1, 10);
+                speed = random(1, 5);
             }
         }
         drawStickman(stickmanX, stickmanY);
