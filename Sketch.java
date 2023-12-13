@@ -1,22 +1,19 @@
 import processing.core.PApplet;
 
-/**
- * Interactive Nature & Stickman
- * @author Jacky Ho
- */
 public class Sketch extends PApplet {
 
-    // Stickman variables
     int stickmanX, stickmanY;
     float speed = 5;
-    boolean wKey, sKey, aKey, dKey = false;
 
-    // Timing variables
+    boolean wKey, sKey, aKey, dKey;
+
+    // Time interval for drawing grass
     int intInterval = 100;
-    int intLastTime = 0;   
+    // Last time the grass was drawn
+    int intLastTime = 0;
 
-    // Color variables
-    int skyColor = color(0, 0, 255);  
+    // Initial sky color
+    int skyColor = color(0, 0, 255);
 
     /**
      * Sets up the canvas size.
@@ -30,13 +27,10 @@ public class Sketch extends PApplet {
      */
     public void setup() {
         stickmanX = width / 2;
-        stickmanY = height / 2 + 60;
+        stickmanY = height / 2 - 60;
         updateBackground();
     }
 
-    /**
-     * Main draw function that is continuously called to update and render the scene.
-     */
     public void draw() {
         float cloudWidth = random(50, 100);
         float cloudHeight = random(25, 50);
@@ -48,30 +42,12 @@ public class Sketch extends PApplet {
             ellipse(mouseX, mouseY, cloudWidth, cloudHeight);
         }
 
-        // Draw stickman and handle movement
-        if (keyPressed) {
-            // Change stickman speed
-            if (key == 'm' || key == 'M') {
-                speed = random(1, 5);
-            }
-        }
         drawStickman(stickmanX, stickmanY);
         handleMovement();
     }
 
-    /**
-     * Draws a stickman at the specified coordinates.
-     *
-     * @param x X-coordinate of the stickman
-     * @param y Y-coordinate of the stickman
-     */
     public void drawStickman(int x, int y) {
         strokeWeight(1);
-        noStroke();
-        // Background to hide old drawings
-        fill(0, 100, 0);
-        rect(x - 15, y - 60, 35, 120);
-        
         stroke(0);
         fill(255);
         // Body
@@ -85,35 +61,33 @@ public class Sketch extends PApplet {
         line(x, y + 30, x + 10, y + 50);
     }
 
-    /**
-     * Handles stickman movement based on key inputs.
-     */
     public void handleMovement() {
         if (wKey) {
-            if (stickmanY - speed >= height / 2 + 60) {
-            stickmanY -= speed;
+            // Check if moving up won't go above the grass
+            if (stickmanY - speed >= height / 2 - 50) {
+                stickmanY -= speed;
             }
         }
         if (sKey) {
-            if (stickmanY + speed < height - 50) {
-            stickmanY += speed;
+            // Check if moving down won't go below the canvas
+            if (stickmanY + speed <= height - 50) {
+                stickmanY += speed;
             }
         }
         if (aKey) {
+            // Check if moving left won't go out the canvas
             if (stickmanX - speed > 15) {
-            stickmanX -= speed;
+                stickmanX -= speed;
             }
         }
         if (dKey) {
+            // Check if moving down won't go below the canvas
             if (stickmanX + speed < width - 15) {
-            stickmanX += speed;
+                stickmanX += speed;
             }
         }
     }
 
-    /**
-     * Handles mouse wheel events to draw butterfly elements.
-     */
     public void mouseWheel() {
         float wingColorRed = random(255);
         float wingColorGreen = random(255);
@@ -236,7 +210,7 @@ public class Sketch extends PApplet {
     }
 
     /**
-     * Called when a key is pressed. Adjusts the sky color based on the arrow keys and move stick figure with WASD.
+     * Called when a key is pressed. Adjusts the sky color based on the arrow keys.
      */
     public void keyPressed() {
         if (keyCode == LEFT) {
@@ -256,13 +230,11 @@ public class Sketch extends PApplet {
         } else if (key == 'd' || key == 'D') {
             dKey = true;
         }
+
     }
 
-    /**
-     * Called when a key is released. Adjusts the sky color based on the arrow keys.
-     */
     public void keyReleased() {
-        if (key == 'w' || key == 'W') {
+        if (key == 'w' || key == 'W') { 
             wKey = false;
         } else if (key == 's' || key == 'S') {
             sKey = false;
@@ -297,5 +269,9 @@ public class Sketch extends PApplet {
         noStroke();
         fill(0, 100, 0);
         rect(0, height / 2, width, height);
+    }
+
+    public static void main(String[] args) {
+        PApplet.main("Sketch");
     }
 }
