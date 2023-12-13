@@ -49,6 +49,12 @@ public class Sketch extends PApplet {
         }
 
         // Draw stickman and handle movement
+        if (keyPressed) {
+            // Change stickman speed
+            if (key == 'm' || key == 'M') {
+                speed = random(1, 10);
+            }
+        }
         drawStickman(stickmanX, stickmanY);
         handleMovement();
     }
