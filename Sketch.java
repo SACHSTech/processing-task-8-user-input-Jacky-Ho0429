@@ -1,17 +1,22 @@
 import processing.core.PApplet;
 
 /**
- * Sketch is a nature-themed interactive setting using key and mouse inputs.
+ * Interactive Nature & Stickman
+ * @author Jacky Ho
  */
 public class Sketch extends PApplet {
 
-    // Time interval for drawing grass
-    int intInterval = 100;
-    // Last time the grass was drawn
-    int intLastTime = 0;
+    // Stickman variables
+    int stickmanX, stickmanY;
+    float speed = 5;
+    boolean wKey, sKey, aKey, dKey = false;
 
-    // Initial sky color
-    int skyColor = color(0, 0, 255);
+    // Timing variables
+    int intInterval = 100;
+    int intLastTime = 0;   
+
+    // Color variables
+    int skyColor = color(0, 0, 255);  
 
     /**
      * Sets up the canvas size.
@@ -24,9 +29,14 @@ public class Sketch extends PApplet {
      * Sets up the initial sky color and background.
      */
     public void setup() {
+        stickmanX = width / 2;
+        stickmanY = height / 2 + 60;
         updateBackground();
     }
 
+    /**
+     * Main draw function that is continuously called to update and render the scene.
+     */
     public void draw() {
         float cloudWidth = random(50, 100);
         float cloudHeight = random(25, 50);
@@ -37,8 +47,67 @@ public class Sketch extends PApplet {
             fill(255, 255, 255);
             ellipse(mouseX, mouseY, cloudWidth, cloudHeight);
         }
+
+        // Draw stickman and handle movement
+        drawStickman(stickmanX, stickmanY);
+        handleMovement();
     }
 
+    /**
+     * Draws a stickman at the specified coordinates.
+     *
+     * @param x X-coordinate of the stickman
+     * @param y Y-coordinate of the stickman
+     */
+    public void drawStickman(int x, int y) {
+        strokeWeight(1);
+        noStroke();
+        // Background to hide old drawings
+        fill(0, 100, 0);
+        rect(x - 15, y - 60, 35, 120);
+        
+        stroke(0);
+        fill(255);
+        // Body
+        line(x, y - 30, x, y + 30);
+        // Head
+        ellipse(x, y - 40, 20, 20);
+        // Arms
+        line(x - 10, y, x + 10, y);
+        // Legs
+        line(x, y + 30, x - 10, y + 50);
+        line(x, y + 30, x + 10, y + 50);
+    }
+
+    /**
+     * Handles stickman movement based on key inputs.
+     */
+    public void handleMovement() {
+        if (wKey) {
+            if (stickmanY - speed >= height / 2 + 60) {
+            stickmanY -= speed;
+            }
+        }
+        if (sKey) {
+            if (stickmanY + speed < height - 50) {
+            stickmanY += speed;
+            }
+        }
+        if (aKey) {
+            if (stickmanX - speed > 15) {
+            stickmanX -= speed;
+            }
+        }
+        if (dKey) {
+            if (stickmanX + speed < width - 15) {
+            stickmanX += speed;
+            }
+        }
+    }
+
+    /**
+     * Handles mouse wheel events to draw butterfly elements.
+     */
     public void mouseWheel() {
         float wingColorRed = random(255);
         float wingColorGreen = random(255);
@@ -83,9 +152,9 @@ public class Sketch extends PApplet {
             popMatrix();
 
             pushMatrix();
-                translate(mouseX - 10, mouseY + 25 / 2);
-                rotate(radians(90));
-                ellipse(0, 0, 15, 25 / 2);
+            translate(mouseX - 10, mouseY + 25 / 2);
+            rotate(radians(90));
+            ellipse(0, 0, 15, 25 / 2);
             popMatrix();
 
             // Duplicated to remove inner stroke
@@ -97,9 +166,9 @@ public class Sketch extends PApplet {
             popMatrix();
 
             pushMatrix();
-                translate(mouseX - 10, mouseY + 15 / 2);
-                rotate(radians(45));
-                ellipse(0, 0, 20, 25 / 2);
+            translate(mouseX - 10, mouseY + 15 / 2);
+            rotate(radians(45));
+            ellipse(0, 0, 20, 25 / 2);
             popMatrix();
         }
     }
@@ -161,15 +230,40 @@ public class Sketch extends PApplet {
     }
 
     /**
-     * Called when a key is pressed. Adjusts the sky color based on the arrow keys.
+     * Called when a key is pressed. Adjusts the sky color based on the arrow keys and move stick figure with WASD.
      */
     public void keyPressed() {
         if (keyCode == LEFT) {
             // Pressing left arrow key brightens the sky
-            adjustSky(1);
+            adjustSky(10);
         } else if (keyCode == RIGHT) {
             // Pressing right arrow key darkens the sky
-            adjustSky(-1);
+            adjustSky(-10);
+        }
+
+        if (key == 'w' || key == 'W') {
+            wKey = true;
+        } else if (key == 's' || key == 'S') {
+            sKey = true;
+        } else if (key == 'a' || key == 'A') {
+            aKey = true;
+        } else if (key == 'd' || key == 'D') {
+            dKey = true;
+        }
+    }
+
+    /**
+     * Called when a key is released. Adjusts the sky color based on the arrow keys.
+     */
+    public void keyReleased() {
+        if (key == 'w' || key == 'W') {
+            wKey = false;
+        } else if (key == 's' || key == 'S') {
+            sKey = false;
+        } else if (key == 'a' || key == 'A') {
+            aKey = false;
+        } else if (key == 'd' || key == 'D') {
+            dKey = false;
         }
     }
 
@@ -181,7 +275,7 @@ public class Sketch extends PApplet {
     private void adjustSky(int adjustment) {
         float blueValue = blue(skyColor);
         skyColor = color(red(skyColor), green(skyColor), blueValue);
-        blueValue = constrain(blueValue + adjustment, 0, 255);
+        blueValue = constrain(blueValue + adjustment, 0, 200);
         skyColor = color(red(skyColor), green(skyColor), blueValue);
 
         updateBackground();
